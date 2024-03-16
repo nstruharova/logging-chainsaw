@@ -32,8 +32,6 @@ import org.apache.log4j.chainsaw.logevents.ChainsawLoggingEvent;
 import org.apache.log4j.chainsaw.logevents.ChainsawLoggingEventBuilder;
 import org.apache.log4j.chainsaw.logevents.LocationInfo;
 import org.apache.log4j.spi.Decoder;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -47,7 +45,6 @@ import org.xml.sax.InputSource;
  * @author Paul Smith (psmith@apache.org)
  */
 public class UtilLoggingXMLDecoder implements Decoder {
-    private static final Logger logger = LogManager.getLogger(UtilLoggingXMLDecoder.class);
     // NOTE: xml section is only handed on first delivery of events
     // on this first delivery of events, there is no end tag for the log element
     /**
@@ -77,9 +74,9 @@ public class UtilLoggingXMLDecoder implements Decoder {
     /**
      * Owner.
      */
-    private final Component owner = null;
+    private Component owner = null;
 
-    private final ChainsawLoggingEventBuilder builder = new ChainsawLoggingEventBuilder();
+    private ChainsawLoggingEventBuilder builder = new ChainsawLoggingEventBuilder();
 
     private static final String ENCODING = "UTF-8";
 
@@ -94,7 +91,7 @@ public class UtilLoggingXMLDecoder implements Decoder {
             docBuilder = dbf.newDocumentBuilder();
             docBuilder.setEntityResolver(new UtilLoggingEntityResolver());
         } catch (ParserConfigurationException pce) {
-            logger.error("Unable to get document builder");
+            System.err.println("Unable to get document builder");
         }
     }
 
@@ -150,7 +147,7 @@ public class UtilLoggingXMLDecoder implements Decoder {
             InputSource inputSource = new InputSource(new StringReader(buf.toString()));
             document = docBuilder.parse(inputSource);
         } catch (Exception e) {
-            logger.error(e, e);
+            e.printStackTrace();
         }
 
         return document;
@@ -203,7 +200,7 @@ public class UtilLoggingXMLDecoder implements Decoder {
                     reader.close();
                 }
             } catch (Exception e) {
-                logger.error(e, e);
+                e.printStackTrace();
             }
         }
         return v;
@@ -219,6 +216,7 @@ public class UtilLoggingXMLDecoder implements Decoder {
     public Vector<ChainsawLoggingEvent> decodeEvents(final String document) {
 
         if (document != null) {
+
             if (document.trim().isEmpty()) {
                 return null;
             }
@@ -273,7 +271,7 @@ public class UtilLoggingXMLDecoder implements Decoder {
 
         Vector<ChainsawLoggingEvent> events = decodeEvents(document);
 
-        if (!events.isEmpty()) {
+        if (events.size() > 0) {
             return events.firstElement();
         }
 
@@ -419,21 +417,21 @@ public class UtilLoggingXMLDecoder implements Decoder {
     /**
      * Get contents of CDATASection.
      *
-     * @param node CDATASection
+     * @param n CDATASection
      * @return text content of all text or CDATA children of node.
      */
-    private String getCData(final Node node) {
-        StringBuilder cDataBuilder = new StringBuilder();
-        NodeList nodeList = node.getChildNodes();
+    private String getCData(final Node n) {
+        StringBuilder buf = new StringBuilder();
+        NodeList nl = n.getChildNodes();
 
-        for (int x = 0; x < nodeList.getLength(); x++) {
-            Node innerNode = nodeList.item(x);
+        for (int x = 0; x < nl.getLength(); x++) {
+            Node innerNode = nl.item(x);
 
             if ((innerNode.getNodeType() == Node.TEXT_NODE) || (innerNode.getNodeType() == Node.CDATA_SECTION_NODE)) {
-                cDataBuilder.append(innerNode.getNodeValue());
+                buf.append(innerNode.getNodeValue());
             }
         }
 
-        return cDataBuilder.toString();
+        return buf.toString();
     }
 }

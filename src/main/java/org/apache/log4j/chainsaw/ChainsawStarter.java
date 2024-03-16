@@ -128,8 +128,8 @@ public class ChainsawStarter {
         EventQueue.invokeLater(() -> {
             logUI.activateViewer();
             splashViewer.removeSplash();
-            logUI.buildChainsawLogPanel();
         });
+        EventQueue.invokeLater(logUI::buildChainsawLogPanel);
 
         logger.info("SecurityManager is now: {}", System.getSecurityManager());
     }
